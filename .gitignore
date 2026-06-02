@@ -1,0 +1,34 @@
+# Environment variables — NEVER commit these
+.env.local
+.env.*.local
+.env
+
+# Next.js build output
+.next/
+out/
+build/
+
+# Node.js
+node_modules/
+npm-debug.log*
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+
+# macOS
+.DS_Store
+.AppleDouble
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Vercel
+.vercel
