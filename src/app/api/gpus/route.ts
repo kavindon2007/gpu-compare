@@ -52,11 +52,11 @@ export async function GET(request: NextRequest) {
       query = query.eq('listing_type', typeFilter)
     }
 
-    // ?sort=price — sort by price ascending (cheapest first)
-    // Default is also price ascending — most useful for comparison
-    if (!sortBy || sortBy === 'price') {
-      query = query.order('price_per_hour', { ascending: true })
-    }
+    // ?sort=price_asc  — cheapest first (default)
+    // ?sort=price_desc — most expensive first
+    // ?sort=price      — legacy alias for price_asc
+    const ascending = sortBy !== "price_desc"
+    query = query.order("price_per_hour", { ascending })
 
     // ── Execute query ───────────────────────────────────────────────
     const { data, error } = await query
