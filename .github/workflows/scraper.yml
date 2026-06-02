@@ -1,0 +1,67 @@
+# scraper.yml — GitHub Actions workflow for GPU Compare
+#
+# Runs the Python scraper every hour automatically.
+# Also supports manual triggering from the GitHub UI.
+#
+# Required GitHub Secrets (set in repo Settings → Secrets → Actions):
+#   SUPABASE_URL   → https://tcicohpcuxyfcpbohsql.supabase.co
+#   SUPABASE_KEY   → your service_role key (NOT the anon key)
+#   RUNPOD_API_KEY → your RunPod API key
+
+name: Run GPU Scrapers
+
+on:
+  # ── Automatic: runs at the top of every hour ──────────────────────
+  # Cron syntax: minute hour day month weekday (all UTC)
+  # "0 * * * *" = at minute 0 of every hour = :00 every hour
+  schedule:
+    - cron: "0 * * * *"
+
+  # ── Manual: trigger from GitHub UI anytime ─────────────────────────
+  # Go to: repo → Actions tab → "Run GPU Scrapers" → "Run workflow"
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    name: Scrape GPU Listings
+    runs-on: ubuntu-latest   # Free GitHub-hosted Ubuntu runner
+
+    steps:
+      # ── Step 1: Download your repo code ──────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── Step 2: Install Python 3.11 ──────────────────────────────
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          # Cache pip dependencies so installs are faster on repeat runs
+          cache: "pip"
+          cache-dependency-path: scraper/requirements.txt
+
+      # ── Step 3: Install Python dependencies ──────────────────────
+      - name: Install dependencies
+        run: pip install -r scraper/requirements.txt
+
+      # ── Step 4: Run the master scraper ───────────────────────────
+      # Secrets are injected as environment variables.
+      # They are NEVER printed in logs — GitHub masks them automatically.
+      - name: Run scrapers
+        env:
+          SUPABASE_URL:    ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY:    ${{ secrets.SUPABASE_KEY }}
+          RUNPOD_API_KEY:  ${{ secrets.RUNPOD_API_KEY }}
+        run: |
+          cd scraper
+          python3 main.py
+
+      # ── Step 5: Report success ────────────────────────────────────
+      - name: Confirm completion
+        if: success()
+        run: echo "All scrapers completed successfully."
+
+      # ── Step 6: Report failure ────────────────────────────────────
+      - name: Report failure
+        if: failure()
+        run: echo "One or more scrapers failed. Check logs above."
