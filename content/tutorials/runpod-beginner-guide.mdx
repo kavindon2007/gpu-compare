@@ -1,0 +1,130 @@
+---
+title: "RunPod for Beginners — How to Rent a GPU and Start Training"
+description: "A complete step-by-step beginner's guide on launching your first GPU instance on RunPod, connecting via Jupyter, and training models with persistence."
+date: "2026-06-01"
+author: "GPU Compare Team"
+readTime: "10 min read"
+tags: ["RunPod", "Cloud GPU", "Jupyter", "LLM Training"]
+category: "Tutorials"
+---
+
+If you have been training models on free tools like Kaggle or Google Colab, you will eventually hit their limits. Long training runs get disconnected, local storage is limited, and you can only access mid-tier GPUs like the Nvidia T4.
+
+When you need uninterrupted training, massive storage, or high-end accelerators like the Nvidia RTX 4090 or H100, **RunPod** is one of the easiest and cheapest GPU cloud providers to get started with. In this beginner's guide, we will walk you through launching a pod, connecting to it, running code, and shutting it down safely to save money.
+
+---
+
+### Why RunPod? (A Brief, Honest Take)
+
+Unlike giant clouds like AWS or Google Cloud, which require complex configurations and enterprise contracts, RunPod is designed specifically for ML developers. 
+
+* **The Good:** You can rent a GPU in 3 clicks, prices start as low as $0.20/hour, you get pre-configured PyTorch containers, and billing is based on per-second usage.
+* **The Catch:** RunPod operates a "community cloud" alongside its secure cloud. Community cloud instances are hosted by third-party data centers, which are very cheap but might have slightly lower uptime than Tier-3 data centers.
+
+---
+
+### Step 1: Create an Account and Add Credits
+
+RunPod uses a prepaid credit system. You must load credits onto your account before you can rent hardware:
+
+1. Sign up for a free account at [RunPod](runpod).
+2. Go to the **Billing** section in the left-hand sidebar.
+3. Click **Add Funds**. You can add credit using a credit/debit card.
+4. Start with a small amount (like $5 or $10) — a standard RTX 3090 pod costs around $0.22/hour, so $5 will give you over 22 hours of compute time!
+
+[SCREENSHOT: RunPod Billing page highlighting the sidebar menu and the blue "Add Funds" button]
+
+---
+
+### Step 2: Choose a GPU (What to Look For)
+
+Once you have credits, navigate to the GPU selection screen:
+
+1. Click on **GPU Cloud** in the left sidebar.
+2. You will see a list of available GPUs, split between **Secure Cloud** and **Community Cloud**.
+   * Choose **Community Cloud** for the cheapest rates (up to 40% cheaper).
+   * Choose **Secure Cloud** if you are working with sensitive enterprise data.
+
+#### Which GPU should you rent?
+* **For general deep learning / beginner ML:** Rent an **Nvidia RTX 3090** (24GB VRAM) or **RTX 4090** (24GB VRAM). They cost $0.22 - $0.74/hour and handle almost all standard training pipelines.
+* **For LLM Fine-tuning (large models):** Rent an **Nvidia A100** (80GB VRAM) or **H100** (80GB VRAM). They cost $1.50 - $2.50/hour but let you fit massive models into memory.
+
+[SCREENSHOT: RunPod GPU Cloud selection list highlighting the RTX 4090 community instance and the deploy button]
+
+---
+
+### Step 3: Deploy a Pod
+
+After selecting a GPU, click **Deploy**:
+
+1. Select your template. The default **RunPod PyTorch** template comes with PyTorch, CUDA, and JupyterLab pre-installed. This is what we recommend.
+2. Configure your storage:
+   * **Container Disk:** Where your operating system and active files live.
+   * **Volume Disk:** Crucial! This is persistent storage. If you stop your pod to save money, files on the volume disk are saved, while files on the container disk are wiped. Set your volume storage size based on your dataset.
+3. Click **Continue** and then click **Deploy**.
+
+[SCREENSHOT: RunPod template configuration overlay showing persistent volume storage sliders and the deploy confirmation button]
+
+---
+
+### Step 4: Connect via Jupyter or SSH
+
+Within a minute, your pod status will change from "Running (starting)" to "Running":
+
+1. Click the **Connect** button on your active pod.
+2. Select **Connect to JupyterLab**. This opens a standard Jupyter interface in a new browser tab.
+3. You can also connect via **SSH** using your terminal if you prefer command-line access.
+
+[SCREENSHOT: RunPod active pods dashboard highlighting the green "Connect" button next to a running instance]
+
+---
+
+### Step 5: Upload Your Code and Run Training
+
+Once inside JupyterLab, you have complete root control over a Linux container:
+
+1. Create a new notebook or terminal.
+2. Upload your datasets and code using the file explorer on the left.
+3. Verify that your GPU is correctly mapped by PyTorch:
+   ```python
+   import torch
+   print("Active GPU:", torch.cuda.get_device_name(0))
+   ```
+4. Run your python training script. Because the connection is persistent, you can close your browser tab, and the training will continue running on RunPod's servers!
+
+---
+
+### Step 6: Stop the Pod When Done (Money-Saving Tip!)
+
+**This is the most important step for beginners.** Running pods charge you for both the GPU and the storage. 
+
+* **To take a break:** Click **Stop** on your pod in the dashboard. This halts the GPU billing (saving you ~80% of the hourly cost), but keeps your persistent volume storage active. You will still be charged a tiny fraction (usually $0.01/hour) to keep your files stored.
+* **To finish completely:** Click **Terminate** (or the trash icon). This stops all billing and deletes your pod and files forever. Make sure to download your trained weight files (like `.pth` or `.bin`) before terminating!
+
+[SCREENSHOT: Active pod options menu highlighting the "Stop" button and the red "Terminate" trash bin icon]
+
+---
+
+### Common Errors and Fixes
+
+* **"No GPU Available"**
+  * *Why:* The requested GPU is popular and currently out of stock on the community cloud.
+  * *Fix:* Check back in 10 minutes, use a different GPU model, or deploy on the Secure Cloud.
+* **Files deleted after restarting**
+  * *Why:* You saved your files in the `root` directory instead of the `/workspace` folder. Only files inside `/workspace` (which points to your Volume Disk) persist when a pod is stopped.
+  * *Fix:* Always make sure your datasets and model outputs are saved inside `/workspace/`.
+
+---
+
+### Cost Comparison: RunPod vs. Big Clouds
+
+To give you an idea of the savings, here is a breakdown of renting a single Nvidia RTX A6000 (48GB VRAM) or equivalent instance:
+
+| Cloud Provider | Hourly Price | Persistent Disk Cost | Setup Time |
+|---|---|---|---|
+| **RunPod (Community)** | **$0.40 - $0.50** | $0.0001 / GB / hr | ~1 minute |
+| **Lambda Labs** | **$0.80** | $0.0003 / GB / hr | ~5 minutes |
+| **Google Cloud (GCP)** | **$1.80+** | Custom disk pricing | ~15 minutes |
+| **AWS (Amazon)** | **$2.20+** | Standard EBS rates | ~20 minutes |
+
+Ready to upgrade your training setups? Spin up your first notebook on [RunPod](runpod) today and accelerate your deep learning models.
