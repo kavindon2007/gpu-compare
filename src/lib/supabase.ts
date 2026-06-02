@@ -12,7 +12,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// --- Type definitions matching your database schema ---
+// Type definitions matching the database schema
 
 export type GpuListing = {
   id: string
@@ -20,7 +20,7 @@ export type GpuListing = {
   gpu_model: string
   vram_gb: number | null
   price_per_hour: number | null
-  listing_type: string | null   // "on-demand" | "spot" | "reserved"
+  listing_type: string | null
   is_available: boolean
   region: string | null
   link: string | null
