@@ -1,7 +1,11 @@
-"use client"
-
+import { Metadata } from "next"
 import FreeTierTable from "@/components/FreeTierTable"
 import Link from "next/link"
+
+export const metadata: Metadata = {
+  title: "Free GPU Tiers & Compute Tracker | GPU Compare",
+  description: "Track and compare free cloud GPU notebooks. Learn quotas, weekly hours, and timeout limits for Kaggle, Google Colab, and Lightning AI.",
+}
 
 export default function FreeComputePage() {
   return (

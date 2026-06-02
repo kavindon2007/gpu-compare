@@ -2,6 +2,12 @@ import fs from "fs"
 import path from "path"
 import Link from "next/link"
 import matter from "gray-matter"
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "ML GPU Training Tutorials & Guides | GPU Compare",
+  description: "Learn how to train deep learning models on remote GPUs. Step-by-step developer guides for Kaggle, Google Colab, RunPod, and other GPU clouds.",
+}
 
 type TutorialItem = {
   slug: string

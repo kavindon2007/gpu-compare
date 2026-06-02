@@ -31,9 +31,31 @@ const mdxComponents = {
   // We can add other custom elements (like warning callouts or custom buttons) here
 }
 
+import { Metadata } from "next"
+
 type Props = {
   params: {
     slug: string
+  }
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = params
+  const contentDir = path.join(process.cwd(), "content/tutorials")
+  const filePath = path.join(contentDir, `${slug}.mdx`)
+
+  if (!fs.existsSync(filePath)) {
+    return {
+      title: "Tutorial Not Found | GPU Compare",
+    }
+  }
+
+  const fileContent = fs.readFileSync(filePath, "utf8")
+  const { data: frontmatter } = matter(fileContent)
+
+  return {
+    title: `${frontmatter.title} | GPU Compare`,
+    description: frontmatter.description ?? "Step-by-step GPU training tutorials for machine learning.",
   }
 }
 
