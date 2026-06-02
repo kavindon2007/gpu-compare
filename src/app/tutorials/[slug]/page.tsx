@@ -9,10 +9,21 @@ import AffiliateLink from "@/components/AffiliateLink"
 // Define custom MDX components we want to allow in tutorials
 const mdxComponents = {
   // Override links to go through our AffiliateLink component!
-  a: ({ href, children, ...props }: any) => {
-    // If it's a provider link or outbound, wrap it
+  a: ({ href, children, title }: any) => {
+    const normalized = href ? href.toLowerCase().replace(/[\s.-]/g, "") : ""
+    const providerKeys = [
+      "runpod", "vastai", "digitalocean", "lambda", "lambdalabs", 
+      "tensordock", "kaggle", "colab", "googlecolab", "lightning", 
+      "lightningai", "huggingface"
+    ]
+    const isProvider = providerKeys.includes(normalized)
+
     return (
-      <AffiliateLink href={href} className="text-blue-600 hover:text-blue-800 underline font-semibold" {...props}>
+      <AffiliateLink 
+        provider={isProvider ? href : undefined} 
+        href={isProvider ? undefined : href} 
+        className="text-blue-600 hover:text-blue-800 underline font-semibold"
+      >
         {children}
       </AffiliateLink>
     )

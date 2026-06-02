@@ -1,0 +1,178 @@
+---
+title: "How to Train a Machine Learning Model on Kaggle for Free"
+description: "A complete step-by-step guide for beginners on setting up free GPU notebooks on Kaggle, training a simple PyTorch model, and saving the outputs."
+date: "2026-06-02"
+author: "GPU Compare Team"
+readTime: "8 min read"
+tags: ["Kaggle", "PyTorch", "Free GPU", "Model Training"]
+category: "Tutorials"
+---
+
+Training modern machine learning models (like deep neural networks) on a standard laptop CPU can take hours or even days. Luckily, you don't need to spend money on expensive cloud hardware when you're just starting out. 
+
+**Kaggle** offers free access to powerful GPU accelerators (specifically Nvidia P100 and T4 GPUs) for up to 30 hours per week. In this tutorial, we will walk through how to set up a Kaggle notebook, activate a free GPU, train a simple PyTorch model, and export your trained weights.
+
+---
+
+### What You Need Before Starting
+
+Before starting this guide, make sure you have:
+1. A web browser and a stable internet connection.
+2. A working mobile phone number (Kaggle requires phone verification to unlock free GPU access).
+3. Basic familiarity with Python and machine learning concepts.
+
+---
+
+### Step 1: Create a Kaggle Account
+
+First, you need to sign up for a free account on Kaggle:
+
+1. Head to [Kaggle](https://www.kaggle.com).
+2. Click the **Sign Up** button in the top right corner.
+3. You can register using your Google account or by entering an email and password.
+4. Follow the verification steps sent to your email.
+
+---
+
+### Step 2: Create a New Notebook
+
+Once logged in, you can create a new cloud-hosted Jupyter Notebook:
+
+1. On the left-hand sidebar, click on **Code**.
+2. Click the **New Notebook** button. This will launch Kaggle's interactive coding environment.
+
+[SCREENSHOT: Kaggle home dashboard highlighting the left sidebar "Code" menu and the blue "New Notebook" button]
+
+---
+
+### Step 3: Enable GPU Accelerator
+
+By default, Kaggle notebooks run on a standard CPU. To train neural networks efficiently, you need to enable a GPU accelerator:
+
+1. Look at the right-hand panel of your notebook editor under the **Notebook options** header.
+2. Find the **Accelerator** section (it will show "None" by default).
+3. Click the dropdown and select **GPU T4 x2** (two T4 GPUs) or **GPU P100**. For most beginner projects, a single P100 or a T4 is excellent.
+4. If this is your first time, Kaggle will prompt you to verify your mobile phone number. Enter your number and the SMS code you receive.
+5. Click **Turn on** to restart your session with the GPU active.
+
+[SCREENSHOT: Kaggle notebook right sidebar under "Notebook options" highlighting the Accelerator selection dropdown showing GPU T4 x2 option]
+
+> 💡 **Pro Tip:** You can verify that your GPU is connected by running this command in a notebook cell:
+> ```python
+> import torch
+> print("GPU Available:", torch.cuda.is_available())
+> if torch.cuda.is_available():
+>     print("Device Name:", torch.cuda.get_device_name(0))
+> ```
+
+---
+
+### Step 4: Import Your Dataset
+
+Kaggle makes it easy to load existing datasets or upload your own:
+
+1. In the right-hand panel, click the **+ Add Input** button.
+2. You can search for thousands of public datasets (like MNIST, CIFAR-10, or Titanic).
+3. Alternatively, click **Upload** to upload a CSV, zip file, or folder from your computer.
+4. Once added, the files will appear in the input directory at `../input/dataset-name/`.
+
+[SCREENSHOT: Kaggle notebook "+ Add Input" button in the upper right quadrant of the sidebar options]
+
+---
+
+### Step 5: Write and Run Your Training Code
+
+Now, let's write a simple PyTorch script to train a classifier. Copy and run this code in your notebook cells:
+
+```python
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+
+# 1. Check and select device
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"Training on device: {device}")
+
+# 2. Generate dummy data (e.g., 1000 samples, 20 features)
+X = torch.randn(1000, 20)
+y = torch.randint(0, 2, (1000, 1)).float()
+
+dataset = TensorDataset(X, y)
+loader = DataLoader(dataset, batch_size=32, shuffle=True)
+
+# 3. Define a simple neural network
+class SimpleClassifier(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.fc = nn.Sequential(
+            nn.Linear(20, 64),
+            nn.ReLU(),
+            nn.Linear(64, 1),
+            nn.Sigmoid()
+        )
+    def forward(self, x):
+        return self.fc(x)
+
+model = SimpleClassifier().to(device)
+criterion = nn.BCELoss()
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+# 4. Training Loop
+for epoch in range(5):
+    epoch_loss = 0.0
+    for batch_X, batch_y in loader:
+        batch_X, batch_y = batch_X.to(device), batch_y.to(device)
+        
+        optimizer.zero_grad()
+        predictions = model(batch_X)
+        loss = criterion(predictions, batch_y)
+        loss.backward()
+        optimizer.step()
+        
+        epoch_loss += loss.item() * batch_X.size(0)
+    
+    print(f"Epoch {epoch+1}/5 - Loss: {epoch_loss/len(dataset):.4f}")
+```
+
+---
+
+### Step 6: Save Your Model
+
+To download your trained model parameters later, save them to the output directory:
+
+```python
+# Save the model state dict
+torch.save(model.state_dict(), "simple_classifier.pth")
+print("Model saved to output directory!")
+```
+
+After running this, your file will appear under the **Output** section in the right-hand menu. You can hover over it and click the download button.
+
+---
+
+### Common Errors and Fixes
+
+* **`RuntimeError: CUDA out of memory`**
+  * *Why:* Your batch size or model is too large for the GPU memory (VRAM).
+  * *Fix:* Decrease your `batch_size` (e.g. from 64 to 32) or reduce your model's parameter size.
+* **`NameError: name 'torch' is not defined`**
+  * *Why:* You forgot to run the import cell.
+  * *Fix:* Make sure to run all code cells sequentially from top to bottom.
+* **GPU Quota Expired**
+  * *Why:* You reached the 30-hour weekly limit.
+  * *Fix:* Kaggle resets your GPU limit every Saturday. You can still run code on CPU, or wait for the reset.
+
+---
+
+### When to Upgrade to Paid Compute
+
+While Kaggle's free tier is an amazing resource, you will eventually run into limitations:
+
+1. **Session Timeouts:** Kaggle notebook sessions will terminate after 12 hours of continuous execution, or after 20 minutes of idle time. If your model takes 24 hours to train, it will disconnect.
+2. **GPU Memory Limits:** The free Nvidia T4/P100 GPUs offer up to 16GB of VRAM. If you want to fine-tune large LLMs (like Llama-3-8B) or run heavy image generation pipelines, you will run out of memory.
+3. **Storage Restrictions:** Kaggle limits local disk storage, which makes training on massive image or video datasets difficult.
+
+If you hit these limits, it is time to upgrade to dedicated paid GPU servers. A platform like [RunPod](runpod) offers extremely cheap, on-demand GPU clouds starting at just $0.20/hour. You can rent powerful Nvidia A100 or H100 GPUs with up to 80GB of VRAM and run scripts in background pods with persistent storage and zero session timeouts.
+
+Get started with dedicated compute by renting a server on [RunPod](runpod) to take your machine learning models to the next level.

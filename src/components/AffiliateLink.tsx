@@ -1,3 +1,5 @@
+"use client"
+
 /**
  * AffiliateLink.tsx — Wrapper for ALL outbound affiliate links.
  *
