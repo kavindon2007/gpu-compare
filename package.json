@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@supabase/supabase-js": "^2.39.0",
     "gray-matter": "^4.0.3",
     "next": "14.2.35",
