@@ -1,16 +1,32 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+// Lazy singleton — client is created on first use (at runtime), not at build time.
+// This prevents Vercel build failures when env vars are only available at runtime.
+let _client: SupabaseClient | null = null
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    'Missing Supabase environment variables. ' +
-    'Check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local'
-  )
+export function getSupabase(): SupabaseClient {
+  if (_client) return _client
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!url || !key) {
+    throw new Error(
+      'Missing Supabase environment variables. ' +
+      'Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in Vercel → Settings → Environment Variables.'
+    )
+  }
+
+  _client = createClient(url, key)
+  return _client
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Backwards-compatible named export used throughout the codebase
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(_target, prop) {
+    return (getSupabase() as any)[prop]
+  },
+})
 
 // Type definitions matching the database schema
 
